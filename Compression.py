@@ -10,11 +10,14 @@ class LZ77:
   def __init__(self, lasize = 16, lusize = 4096):
     self.lasize = lasize
     self.lusize = lusize
-    self.lookahead = []*self.lasize
+    self.lookahead = [] * self.lasize
     self.lookup = CircularBuffer(self.lusize)
     self.buf = CircularBuffer(self.lusize)
     self.maxlen = lasize
     self.filesystemblock = 4096
+
+  def reinit_lookahead(self):
+	self.lookahead = [] * self.lasize
 
   def compress(self, filename):
     try:
@@ -43,17 +46,17 @@ class LZ77:
             length = len(prevMatched)
             distance = self.lookup.length() - prevStart - 1
             bw.writeDistLen(distance, length)
-            self.lookahead = []
+            self.reinit_lookahead()
           else:
             bw.writeSymbol(ord(prevMatched))
-            self.lookahead = []
+            self.reinit_lookahead()
           self.lookahead.append(byte)
           self.lookup.add(prevMatched)
           prevMatched = None
           start, end, match = self.lookup.findSubstring(self.lookahead)
           if match == None:
             bw.writeSymbol(ord(byte))
-            self.lookahead = []
+            self.reinit_lookahead()
             self.lookup.add(byte)
           else:
             prevMatched = match
@@ -63,8 +66,9 @@ class LZ77:
         elif len(match) == self.lasize:
           length = len(match)
           distance = self.lookup.length() - start - 1
+          print "FULLLLLLLLLLLLLLLLLLLL"
           bw.writeDistLen(distance, length)
-          self.lookahead = []
+          self.reinit_lookahead()
           prevMatched = None
           self.lookup.add(match)
         else:
@@ -112,7 +116,7 @@ class LZ77:
           bw.appendByte(ord(sym))
           self.lookup.add(sym)
     br.close()
-    bw.close()     
+    bw.close()
 
   def debug(self, res):
     self.sprint("LOOKAHEAD", self.lookahead, len(self.lookahead))
