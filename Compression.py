@@ -117,6 +117,7 @@ class LZ77:
           break
         index = self.lookup.length() - distance - 1
         for i in range(0, length):
+          print self.lookup.length(), index,
           sym = self.lookup.get(index)
           index = index + 1
           print "SYM: ", sym
