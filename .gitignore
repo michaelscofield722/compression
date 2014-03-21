@@ -55,3 +55,6 @@ docs/_build/
 # LZ77 Project Test Data
 *.lz.decomp
 *.lz
+*.swp
+*.swo
+
