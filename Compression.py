@@ -34,8 +34,7 @@ class LZ77:
       self.lookahead.append(byte)
       start, end, match = self.lookup.findSubstring(self.lookahead)
       if match == None and prevMatched == None: 
-          bw.appendBit(0)
-          bw.appendByte(ord(byte))
+          bw.writeSymbol(ord(byte))
           self.lookahead = []
           self.lookup.add(byte)
       else:
@@ -43,21 +42,17 @@ class LZ77:
           if len(prevMatched) > 1:
             length = len(prevMatched)
             distance = self.lookup.length() - prevStart - 1
-            bw.appendBit(1)
-            bw.append3Nibble(distance)
-            bw.appendNibble(length)
+            bw.writeDistLen(distance, length)
             self.lookahead = []
           else:
-            bw.appendBit(0)
-            bw.appendByte(ord(prevMatched))
+            bw.writeSymbol(ord(prevMatched))
             self.lookahead = []
           self.lookahead.append(byte)
           self.lookup.add(prevMatched)
           prevMatched = None
           start, end, match = self.lookup.findSubstring(self.lookahead)
           if match == None:
-            bw.appendBit(0)
-            bw.appendByte(ord(byte))
+            bw.writeSymbol(ord(byte))
             self.lookahead = []
             self.lookup.add(byte)
           else:
@@ -68,9 +63,7 @@ class LZ77:
         elif len(match) == self.lasize:
           length = len(match)
           distance = self.lookup.length() - start - 1
-          bw.appendBit(1)
-          bw.append3Nibble(distance)
-          bw.appendNibble(length)
+          bw.writeDistLen(distance, length)
           self.lookahead = []
           prevMatched = None
           self.lookup.add(match)
@@ -81,15 +74,11 @@ class LZ77:
     if prevMatched != None and len(prevMatched) > 0:
       length = len(prevMatched)
       distance = self.lookup.length() - start - 1
-      bw.appendBit(1)
-      bw.append3Nibble(distance)
-      bw.appendNibble(length)
+      bw.writeDistLen(distance, length)
     elif prevMatched != None:
-      bw.appendBit(0)
-      bw.appendByte(ord(prevMatched))
+      bw.writeSymbol(ord(prevMatched))
     elif match != None:
-      bw.appendBit(0)  
-      bw.appendByte(ord(match))
+      bw.writeSymbol(ord(match))
     bw.close()
     inp.close()
 
@@ -105,22 +94,21 @@ class LZ77:
         sym = br.readByte()
         if sym == None:
           break
-        print "SYM: ", chr(sym)
+        print " " * 24 + "SYM: ", chr(sym)
         bw.appendByte(sym)
         self.lookup.add(chr(sym))
       else:
         distance = br.read3Nibble()
         length = br.readNibble()
-        print distance
-        print length
         if distance == None or length == None:
+          print distance, length
           break
         index = self.lookup.length() - distance - 1
         for i in range(0, length):
-          print self.lookup.length(), index,
+          print "%5d %5d %5d %5d" % (distance, length, self.lookup.length(), index),
           sym = self.lookup.get(index)
+          print "SYM: [" + str("\\n" if sym == "\n" else sym) + "]"
           index = index + 1
-          print "SYM: ", sym
           bw.appendByte(ord(sym))
           self.lookup.add(sym)
     br.close()

@@ -7,6 +7,17 @@ class BinaryWriter(object):
     self.buff = bytearray(max_size)
     self.bitlen = 0
 
+  def writeSymbol(self, byteVal):
+	self.appendBit(0)
+	self.appendByte(byteVal)
+	print "Sym: %c" % (byteVal)
+
+  def writeDistLen(self, d, l):
+	self.appendBit(1)
+	self.append3Nibble(d)
+	self.appendNibble(l)
+	print "DL : %d %d" % (d, l)
+
   def appendBit(self, bitVal):
     #print "Appending bit", bitVal
     byteIndex = self.bitlen / 8
