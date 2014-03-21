@@ -110,13 +110,16 @@ class LZ77:
           print distance, length
           break
         index = self.lookup.length() - distance - 1
+        tmpbuff = []
         for i in range(0, length + 1):
           print "%5d %5d %5d %5d %5d %s" % (distance, length, self.lookup.length(), index, i, self.lookup.debug()),
           sym = self.lookup.get(index)
+          tmpbuff = tmpbuff + [sym]
           print "SYM: [" + str("\\n" if sym == "\n" else sym) + "]"
           index = index + 1
           bw.appendByte(ord(sym))
-          self.lookup.add(sym)
+        for s in tmpbuff:
+	      self.lookup.add(s)
     br.close()
     bw.close()
 
