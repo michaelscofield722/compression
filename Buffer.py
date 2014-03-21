@@ -62,11 +62,13 @@ class CircularBuffer:
     return (self.tail + 1) + (self.size - self.head)
   
   def debug(self):
-    print "HEAD", self.head, "TAIL", self.tail
+    s = ""
+    s = s + "[" + str(self.head) + ", " + str(self.tail) + "[["
     for i in range(0, self.length()):
-      print self.get(i),
-    print
-  
+      s = s + self.get(i)
+    s = s + "]]"
+    return s
+
   def findSubstring(self, needle):
     haystack = ''
     for i in range(0, self.length()):
