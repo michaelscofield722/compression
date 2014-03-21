@@ -10,11 +10,14 @@ class LZ77:
   def __init__(self, lasize = 16, lusize = 4096):
     self.lasize = lasize
     self.lusize = lusize
-    self.lookahead = []*self.lasize
+    self.lookahead = [] * self.lasize
     self.lookup = CircularBuffer(self.lusize)
     self.buf = CircularBuffer(self.lusize)
     self.maxlen = lasize
     self.filesystemblock = 4096
+
+  def reinit_lookahead(self):
+	self.lookahead = [] * self.lasize
 
   def compress(self, filename):
     try:
@@ -34,8 +37,7 @@ class LZ77:
       self.lookahead.append(byte)
       start, end, match = self.lookup.findSubstring(self.lookahead)
       if match == None and prevMatched == None: 
-          bw.appendBit(0)
-          bw.appendByte(ord(byte))
+          bw.writeSymbol(ord(byte))
           self.lookahead = []
           self.lookup.add(byte)
       else:
@@ -43,22 +45,18 @@ class LZ77:
           if len(prevMatched) > 1:
             length = len(prevMatched)
             distance = self.lookup.length() - prevStart - 1
-            bw.appendBit(1)
-            bw.append3Nibble(distance)
-            bw.appendNibble(length)
-            self.lookahead = []
+            bw.writeDistLen(distance, length)
+            self.reinit_lookahead()
           else:
-            bw.appendBit(0)
-            bw.appendByte(ord(prevMatched))
-            self.lookahead = []
+            bw.writeSymbol(ord(prevMatched))
+            self.reinit_lookahead()
           self.lookahead.append(byte)
           self.lookup.add(prevMatched)
           prevMatched = None
           start, end, match = self.lookup.findSubstring(self.lookahead)
           if match == None:
-            bw.appendBit(0)
-            bw.appendByte(ord(byte))
-            self.lookahead = []
+            bw.writeSymbol(ord(byte))
+            self.reinit_lookahead()
             self.lookup.add(byte)
           else:
             prevMatched = match
@@ -68,10 +66,9 @@ class LZ77:
         elif len(match) == self.lasize:
           length = len(match)
           distance = self.lookup.length() - start - 1
-          bw.appendBit(1)
-          bw.append3Nibble(distance)
-          bw.appendNibble(length)
-          self.lookahead = []
+          print "FULLLLLLLLLLLLLLLLLLLL"
+          bw.writeDistLen(distance, length)
+          self.reinit_lookahead()
           prevMatched = None
           self.lookup.add(match)
         else:
@@ -81,15 +78,11 @@ class LZ77:
     if prevMatched != None and len(prevMatched) > 0:
       length = len(prevMatched)
       distance = self.lookup.length() - start - 1
-      bw.appendBit(1)
-      bw.append3Nibble(distance)
-      bw.appendNibble(length)
+      bw.writeDistLen(distance, length)
     elif prevMatched != None:
-      bw.appendBit(0)
-      bw.appendByte(ord(prevMatched))
+      bw.writeSymbol(ord(prevMatched))
     elif match != None:
-      bw.appendBit(0)  
-      bw.appendByte(ord(match))
+      bw.writeSymbol(ord(match))
     bw.close()
     inp.close()
 
@@ -105,25 +98,25 @@ class LZ77:
         sym = br.readByte()
         if sym == None:
           break
-        print "SYM: ", chr(sym)
+        print " " * 24 + "SYM: ", chr(sym)
         bw.appendByte(sym)
         self.lookup.add(chr(sym))
       else:
         distance = br.read3Nibble()
         length = br.readNibble()
-        print distance
-        print length
         if distance == None or length == None:
+          print distance, length
           break
         index = self.lookup.length() - distance - 1
         for i in range(0, length):
+          print "%5d %5d %5d %5d" % (distance, length, self.lookup.length(), index),
           sym = self.lookup.get(index)
+          print "SYM: [" + str("\\n" if sym == "\n" else sym) + "]"
           index = index + 1
-          print "SYM: ", sym
           bw.appendByte(ord(sym))
           self.lookup.add(sym)
     br.close()
-    bw.close()     
+    bw.close()
 
   def debug(self, res):
     self.sprint("LOOKAHEAD", self.lookahead, len(self.lookahead))
