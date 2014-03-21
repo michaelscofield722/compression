@@ -110,8 +110,8 @@ class LZ77:
           print distance, length
           break
         index = self.lookup.length() - distance - 1
-        for i in range(0, length):
-          print "%5d %5d %5d %5d %s" % (distance, length, self.lookup.length(), index, self.lookup.debug()),
+        for i in range(0, length + 1):
+          print "%5d %5d %5d %5d %5d %s" % (distance, length, self.lookup.length(), index, i, self.lookup.debug()),
           sym = self.lookup.get(index)
           print "SYM: [" + str("\\n" if sym == "\n" else sym) + "]"
           index = index + 1

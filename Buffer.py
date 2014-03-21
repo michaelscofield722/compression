@@ -65,7 +65,10 @@ class CircularBuffer:
     s = ""
     s = s + "[" + str(self.head) + ", " + str(self.tail) + "[["
     for i in range(0, self.length()):
-      s = s + self.get(i)
+      if self.get(i) == "\n":
+        s = s + "\\n"
+      else:
+        s = s + self.get(i)
     s = s + "]]"
     return s
 
