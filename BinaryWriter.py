@@ -10,13 +10,13 @@ class BinaryWriter(object):
   def writeSymbol(self, byteVal):
 	self.appendBit(0)
 	self.appendByte(byteVal)
-	print "Sym: %c" % (byteVal)
+	print "%c : Sym" % (byteVal)
 
   def writeDistLen(self, d, l):
 	self.appendBit(1)
 	self.append3Nibble(d)
-	self.appendNibble(l)
-	print "DL : %d %d" % (d, l)
+	self.appendNibble(l - 1)
+	print "DL : %d %d" % (d, l - 1)
 
   def appendBit(self, bitVal):
     #print "Appending bit", bitVal

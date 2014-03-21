@@ -45,6 +45,7 @@ class LZ77:
           if len(prevMatched) > 1:
             length = len(prevMatched)
             distance = self.lookup.length() - prevStart - 1
+            print "%-16s" % (prevMatched),
             bw.writeDistLen(distance, length)
             self.reinit_lookahead()
           else:
@@ -66,7 +67,7 @@ class LZ77:
         elif len(match) == self.lasize:
           length = len(match)
           distance = self.lookup.length() - start - 1
-          print "FULLLLLLLLLLLLLLLLLLLL"
+          print "%-16s" % (match),
           bw.writeDistLen(distance, length)
           self.reinit_lookahead()
           prevMatched = None
@@ -78,6 +79,7 @@ class LZ77:
     if prevMatched != None and len(prevMatched) > 0:
       length = len(prevMatched)
       distance = self.lookup.length() - start - 1
+      print "%-16s" % (prevMatched),
       bw.writeDistLen(distance, length)
     elif prevMatched != None:
       bw.writeSymbol(ord(prevMatched))
